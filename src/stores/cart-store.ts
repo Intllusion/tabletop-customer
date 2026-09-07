@@ -5,9 +5,24 @@ import type { CartItem, CartItemModifier } from '@/types';
 interface CartState {
   storeId: string | null;
   items: CartItem[];
-  subtotal: number;
-  taxRate: number;
-  taxAmount: number;
+
+  /**
+   * What the cart comes to. Menu prices include VAT, so this is the price.
+   *
+   * There used to be `subtotal`, `taxRate` and `taxAmount` here, splitting the
+   * total at a hardcoded 17%. Three things were wrong with that at once.
+   *
+   * The rate was a second copy of a number the server also holds, and the two
+   * had drifted - Israeli VAT has been 18% since January 2025. The split was
+   * being *added* to the menu price rather than extracted from it, so a 12.00
+   * coffee was shown at checkout as 14.04 while the server charged 12.00. And
+   * showing VAT as an addition is the wrong way round here anyway: the
+   * displayed price has to include it.
+   *
+   * The server computes net and tax when it prices the order and returns both
+   * on the response. That is the copy a receipt has to agree with, so it is
+   * the only copy. The order screen reads those server figures and is correct.
+   */
   total: number;
 
   // Actions
@@ -17,7 +32,6 @@ interface CartState {
   removeItem: (cartItemId: string) => void;
   updateNotes: (cartItemId: string, notes: string) => void;
   clearCart: () => void;
-  setTaxRate: (rate: number) => void;
 }
 
 // Generate a unique ID for cart items
@@ -31,12 +45,9 @@ function calculateItemTotal(item: Pick<CartItem, 'unitPrice' | 'quantity' | 'mod
   return (item.unitPrice + modifiersTotal) * item.quantity;
 }
 
-// Recalculate cart totals
-function recalculateTotals(items: CartItem[], taxRate: number) {
-  const subtotal = items.reduce((sum, item) => sum + item.totalPrice, 0);
-  const taxAmount = subtotal * taxRate;
-  const total = subtotal + taxAmount;
-  return { subtotal, taxAmount, total };
+// What the cart comes to. Menu prices include VAT, so nothing is added.
+function recalculateTotals(items: CartItem[]) {
+  return { total: items.reduce((sum, item) => sum + item.totalPrice, 0) };
 }
 
 export const useCartStore = create<CartState>()(
@@ -44,9 +55,6 @@ export const useCartStore = create<CartState>()(
     (set, get) => ({
       storeId: null,
       items: [],
-      subtotal: 0,
-      taxRate: 0.17, // Default 17% tax rate
-      taxAmount: 0,
       total: 0,
 
       setStore: (storeId) => {
@@ -56,8 +64,6 @@ export const useCartStore = create<CartState>()(
           set({
             storeId,
             items: [],
-            subtotal: 0,
-            taxAmount: 0,
             total: 0,
           });
         } else {
@@ -66,15 +72,13 @@ export const useCartStore = create<CartState>()(
       },
 
       addItem: (itemData, storeId) => {
-        const { items, taxRate, storeId: currentStoreId } = get();
+        const { items, storeId: currentStoreId } = get();
 
         // If adding to a different store, clear cart first
         if (currentStoreId && currentStoreId !== storeId) {
           set({
             storeId,
             items: [],
-            subtotal: 0,
-            taxAmount: 0,
             total: 0,
           });
         } else if (!currentStoreId) {
@@ -117,7 +121,7 @@ export const useCartStore = create<CartState>()(
           newItems = [...currentItems, newItem];
         }
 
-        const totals = recalculateTotals(newItems, taxRate);
+        const totals = recalculateTotals(newItems);
         set({ items: newItems, ...totals });
       },
 
@@ -127,7 +131,7 @@ export const useCartStore = create<CartState>()(
           return;
         }
 
-        const { items, taxRate } = get();
+        const { items } = get();
         const newItems = items.map((item) => {
           if (item.id === cartItemId) {
             return {
@@ -139,14 +143,14 @@ export const useCartStore = create<CartState>()(
           return item;
         });
 
-        const totals = recalculateTotals(newItems, taxRate);
+        const totals = recalculateTotals(newItems);
         set({ items: newItems, ...totals });
       },
 
       removeItem: (cartItemId) => {
-        const { items, taxRate } = get();
+        const { items } = get();
         const newItems = items.filter((item) => item.id !== cartItemId);
-        const totals = recalculateTotals(newItems, taxRate);
+        const totals = recalculateTotals(newItems);
         set({ items: newItems, ...totals });
       },
 
@@ -164,17 +168,10 @@ export const useCartStore = create<CartState>()(
       clearCart: () => {
         set({
           items: [],
-          subtotal: 0,
-          taxAmount: 0,
           total: 0,
         });
       },
 
-      setTaxRate: (rate) => {
-        const { items } = get();
-        const totals = recalculateTotals(items, rate);
-        set({ taxRate: rate, ...totals });
-      },
     }),
     {
       name: 'kiosk-cart',
@@ -182,7 +179,6 @@ export const useCartStore = create<CartState>()(
       partialize: (state) => ({
         storeId: state.storeId,
         items: state.items,
-        taxRate: state.taxRate,
       }),
     }
   )

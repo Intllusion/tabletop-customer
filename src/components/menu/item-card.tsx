@@ -1,5 +1,6 @@
 'use client';
 
+import { resolveImageUrl } from '@/lib/image-url';
 import { Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatCurrency } from '@/lib/utils';
@@ -58,7 +59,7 @@ export function ItemCard({ item, onSelect }: ItemCardProps) {
       )}>
         {item.imageUrl ? (
           <img
-            src={item.imageUrl}
+            src={resolveImageUrl(item.imageUrl)}
             alt={itemName}
             className="w-full h-full object-cover transition-transform group-hover:scale-105"
           />

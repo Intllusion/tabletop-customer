@@ -1,5 +1,6 @@
 'use client';
 
+import { resolveImageUrl } from '@/lib/image-url';
 import { useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -71,7 +72,7 @@ export function CategoryList({
               >
                 {category.imageUrl && (
                   <img
-                    src={category.imageUrl}
+                    src={resolveImageUrl(category.imageUrl)}
                     alt=""
                     aria-hidden="true"
                     className="w-5 h-5 rounded object-cover mr-2"

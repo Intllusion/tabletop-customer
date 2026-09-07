@@ -1,5 +1,6 @@
 'use client';
 
+import { resolveImageUrl } from '@/lib/image-url';
 import { cn } from '@/lib/utils';
 import { useCatalogTranslation, useTranslation } from '@/stores/translation-store';
 import type { Category } from '@/types';
@@ -50,7 +51,7 @@ export function CategorySidebar({
               >
                 {category.imageUrl ? (
                   <img
-                    src={category.imageUrl}
+                    src={resolveImageUrl(category.imageUrl)}
                     alt={categoryName}
                     className="w-full h-full object-cover"
                   />

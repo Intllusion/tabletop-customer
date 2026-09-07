@@ -6,8 +6,6 @@ import type { CartItemModifier, MenuItem, ItemVariant } from '@/types';
  */
 export function useCart() {
   const items = useCartStore((state) => state.items);
-  const subtotal = useCartStore((state) => state.subtotal);
-  const taxAmount = useCartStore((state) => state.taxAmount);
   const total = useCartStore((state) => state.total);
   const addItem = useCartStore((state) => state.addItem);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
@@ -22,8 +20,6 @@ export function useCart() {
     items,
     itemCount,
     isEmpty,
-    subtotal,
-    taxAmount,
     total,
     addItem,
     updateQuantity,
