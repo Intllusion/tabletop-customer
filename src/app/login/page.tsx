@@ -37,9 +37,24 @@ export default function LoginPage() {
   const [pendingAuth, setPendingAuth] = useState<DeviceAuthResponse | null>(null);
   const [deviceName, setDeviceName] = useState<string>('');
 
-  // Generate device name once on mount
+  // One name per browser, kept.
+  //
+  // This used to be `TableTop-${Date.now()}` computed on every mount, so every
+  // visit to this page minted a new name and the backend created another
+  // device row. They accumulated: a tablet that had signed in a dozen times
+  // left a dozen devices, and they all showed up in the POS's own "Select
+  // Device" list, burying the real terminal among them.
+  //
+  // A genuinely new browser is a genuinely new device and still gets its own
+  // name. This only stops the same one registering repeatedly.
   useEffect(() => {
-    setDeviceName(`TableTop-${Date.now()}`);
+    const KEY = 'tabletop-device-name';
+    let name = window.localStorage.getItem(KEY);
+    if (!name) {
+      name = `TableTop-${Date.now()}`;
+      window.localStorage.setItem(KEY, name);
+    }
+    setDeviceName(name);
   }, []);
 
   const handleCredentialsSubmit = async (e: React.FormEvent) => {
