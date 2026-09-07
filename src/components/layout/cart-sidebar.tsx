@@ -29,8 +29,6 @@ export function CartSidebar() {
     items,
     itemCount,
     isEmpty,
-    subtotal,
-    taxAmount,
     total,
     updateQuantity,
     removeItem,
@@ -133,20 +131,15 @@ export function CartSidebar() {
             </ScrollArea>
 
             <div className="space-y-4 pt-4 border-t">
+              {/* One number: menu prices include VAT. See order-summary. */}
               <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">{t('cart.subtotal', 'Subtotal')}</span>
-                  <span>{formatCurrency(subtotal)}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">{t('cart.tax', 'Tax')}</span>
-                  <span>{formatCurrency(taxAmount)}</span>
-                </div>
-                <Separator />
                 <div className="flex justify-between font-semibold text-lg">
                   <span>{t('cart.total', 'Total')}</span>
                   <span>{formatCurrency(total)}</span>
                 </div>
+                <p className="text-sm text-muted-foreground">
+                  {t('cart.vat_included', 'VAT included')}
+                </p>
               </div>
 
               <SheetFooter className="flex-col gap-2 sm:flex-col">

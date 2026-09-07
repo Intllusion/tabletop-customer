@@ -1,5 +1,6 @@
 'use client';
 
+import { resolveImageUrl } from '@/lib/image-url';
 import { useState, useEffect, useMemo } from 'react';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -199,7 +200,7 @@ export function ItemDetailModal({ item, isOpen, onClose, storeId }: ItemDetailMo
           {/* Use galleryImages[0] if available, otherwise fall back to imageUrl */}
           {(item.galleryImages && item.galleryImages.length > 0) || item.imageUrl ? (
             <img
-              src={item.galleryImages?.[0] || item.imageUrl}
+              src={resolveImageUrl(item.galleryImages?.[0] || item.imageUrl)}
               alt={ct(item.translations, 'name', item.name)}
               className="w-full h-48 object-cover"
             />

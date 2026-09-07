@@ -11,8 +11,6 @@ export function OrderSummary() {
   const isKiosk = useIsKioskMode();
   const { t } = useTranslation();
   const items = useCartStore((state) => state.items);
-  const subtotal = useCartStore((state) => state.subtotal);
-  const taxAmount = useCartStore((state) => state.taxAmount);
   const total = useCartStore((state) => state.total);
 
   return (
@@ -73,17 +71,16 @@ export function OrderSummary() {
 
       <Separator />
 
-      {/* Totals */}
+      {/* Totals
+        *
+        * One number, because there is only one. Menu prices include VAT, so a
+        * Subtotal and Tax line above the total were not a breakdown of it -
+        * they were 17% added on top of a price that already contained 18%.
+        * A 12.00 coffee was quoted here at 14.04 and charged at 12.00.
+        *
+        * The VAT split is a real thing and it belongs on the receipt, where
+        * the server computes it. Not here, where it was invented. */}
       <div className="space-y-2">
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">{t('cart.subtotal', 'Subtotal')}</span>
-          <span>{formatCurrency(subtotal)}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">{t('cart.tax', 'Tax')}</span>
-          <span>{formatCurrency(taxAmount)}</span>
-        </div>
-        <Separator />
         <div className={cn(
           'flex justify-between font-bold',
           isKiosk ? 'text-xl' : 'text-lg'
@@ -91,6 +88,9 @@ export function OrderSummary() {
           <span>{t('cart.total', 'Total')}</span>
           <span>{formatCurrency(total)}</span>
         </div>
+        <p className="text-sm text-muted-foreground">
+          {t('cart.vat_included', 'VAT included')}
+        </p>
       </div>
     </div>
   );
